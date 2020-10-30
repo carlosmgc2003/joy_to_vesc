@@ -27,3 +27,10 @@ rosrun joy_to_vesc joy_to_vesc_node _ratio:=0.5
 ```
 
 Ratio el un multiplicador del input del joystick [-1.0;1.0]. El parametro ratio es opcional. Su valor por defecto es 0.3.
+
+* Pad Analogico Izquierdo (Y Axis): Avanzar/Retroceder.
+* Boton Rojo, 2 o Circulo: Freno.
+
+### Pendiente
+
+* Agregar la direccion del robot con el X Axis del pad izquierdo.
