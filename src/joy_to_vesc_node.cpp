@@ -7,7 +7,7 @@
 const int LINEAR_AXIS = 1;
 const int RED_BUTTON = 1;
 const double DEFAULT_RATIO = 0.3;
-
+const int DIRECTION_AXIS = 2;
 
 // Clase que convierte el input del Joystick en instrucciones para Drivers VESC
 class Translator {
@@ -16,6 +16,7 @@ class Translator {
     ros::Subscriber joystick;
     ros::Publisher vescMotor;
     ros::Publisher vescBrake;
+    ros::Publisher ackermannDir;
     double ratio;
 public:
     Translator();
@@ -34,6 +35,7 @@ Translator::Translator(){
     joystick = n.subscribe<sensor_msgs::Joy>("joy", 10, &Translator::joystickCallback, this);
     vescMotor =  n.advertise<std_msgs::Float64>("commands/motor/duty_cycle", 10);
     vescBrake =  n.advertise<std_msgs::Float64>("commands/motor/brake", 10);
+    ackermannDir = n.advertise<std_msgs::Float64>("direction", 10);
 }
 
 void Translator::setRatio() {
@@ -52,22 +54,26 @@ void Translator::joystickCallback(const sensor_msgs::Joy::ConstPtr& joy) {
     // Captura de los valores de los botones de Joystick
     const double y_value = joy->axes[LINEAR_AXIS];
     const int red_value = joy->buttons[RED_BUTTON];
+    const double  x_value = joy->axes[DIRECTION_AXIS];
     // Instancia de los mensajes
     std_msgs::Float64 msgMotor;
     std_msgs::Float64 msgBrake;
+    std_msgs::Float64 msgAckermann;
 
     // Carga de los datos
     msgMotor.data = y_value * ratio;
     msgBrake.data = red_value;
+    msgAckermann.data = x_value;
 
     // Feedback en el log
-    ROS_INFO("El pad devuelve: [%.2f], VESC recibe [%.2f], Brake en [%.2f]", y_value, msgMotor.data, msgBrake.data);
+    ROS_INFO("VESC recibe [%.2f], Brake en [%.2f], ackerman en [%.2f]", msgMotor.data, msgBrake.data, msgAckermann.data);
     
     // Publicacion de los datos
     vescMotor.publish(msgMotor);
     // Solo se publica freno cuando cambia
     if(red_value != 0)
         vescBrake.publish(msgBrake);
+    ackermannDir.publish(msgAckermann);
 }
 
 int main(int argc, char **argv) {
