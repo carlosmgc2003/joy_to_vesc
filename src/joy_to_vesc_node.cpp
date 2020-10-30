@@ -1,13 +1,15 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 #include <std_msgs/Float64.h>
+#include <std_msgs/Int32.h>
 
 
 // Constante global que define la posicion en el array Float64 del eje Y del Stick Analogico Izquierdo del Joystick PS3
 const int LINEAR_AXIS = 1;
 const int RED_BUTTON = 1;
 const double DEFAULT_RATIO = 0.3;
-const int DIRECTION_AXIS = 2;
+const int RIGHT_TURN = 7;
+const int LEFT_TURN = 6;
 
 // Clase que convierte el input del Joystick en instrucciones para Drivers VESC
 class Translator {
@@ -35,7 +37,7 @@ Translator::Translator(){
     joystick = n.subscribe<sensor_msgs::Joy>("joy", 10, &Translator::joystickCallback, this);
     vescMotor =  n.advertise<std_msgs::Float64>("commands/motor/duty_cycle", 10);
     vescBrake =  n.advertise<std_msgs::Float64>("commands/motor/brake", 10);
-    ackermannDir = n.advertise<std_msgs::Float64>("direction", 10);
+    ackermannDir = n.advertise<std_msgs::Int32>("direction",10);
 }
 
 void Translator::setRatio() {
@@ -54,19 +56,19 @@ void Translator::joystickCallback(const sensor_msgs::Joy::ConstPtr& joy) {
     // Captura de los valores de los botones de Joystick
     const double y_value = joy->axes[LINEAR_AXIS];
     const int red_value = joy->buttons[RED_BUTTON];
-    const double  x_value = joy->axes[DIRECTION_AXIS];
+    const int turn_value = joy->buttons[RIGHT_TURN] - joy->buttons[LEFT_TURN];
     // Instancia de los mensajes
     std_msgs::Float64 msgMotor;
     std_msgs::Float64 msgBrake;
-    std_msgs::Float64 msgAckermann;
+    std_msgs::Int32 msgAckermann;
 
     // Carga de los datos
     msgMotor.data = y_value * ratio;
     msgBrake.data = red_value;
-    msgAckermann.data = x_value;
+    msgAckermann.data = turn_value;
 
     // Feedback en el log
-    ROS_INFO("VESC recibe [%.2f], Brake en [%.2f], ackerman en [%.2f]", msgMotor.data, msgBrake.data, msgAckermann.data);
+    ROS_INFO("VESC recibe [%.2f], Brake en [%.2f], ackerman# en [%d]", msgMotor.data, msgBrake.data, msgAckermann.data);
     
     // Publicacion de los datos
     vescMotor.publish(msgMotor);
