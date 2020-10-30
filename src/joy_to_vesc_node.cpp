@@ -67,7 +67,7 @@ void Translator::joystickCallback(const sensor_msgs::Joy::ConstPtr& joy) {
     msgBrake.data = red_value;
     msgAckermann.data = turn_value;
 
-    // Feedback en el log
+    // Feedback en el lo
     ROS_INFO("VESC recibe [%.2f], Brake en [%.2f], ackerman# en [%d]", msgMotor.data, msgBrake.data, msgAckermann.data);
     
     // Publicacion de los datos
